@@ -11,6 +11,7 @@ from logging import Logger
 from tempfile import NamedTemporaryFile
 from typing import Any, Dict, List, Set, Union
 
+import pandas as pd
 import numpy as np
 import scipy.sparse
 
@@ -501,10 +502,15 @@ def _get_bad_pandas_dtypes(dtypes):
     return bad_indices
 
 
-def _data_from_pandas(data, feature_name, categorical_feature, pandas_categorical):
+def _data_from_pandas(data, feature_name, categorical_feature, pandas_categorical, transform=None):
     if isinstance(data, pd_DataFrame):
         if len(data.shape) != 2 or data.shape[0] < 1:
             raise ValueError('Input data must be 2 dimensional and non empty.')
+        if transform is not None:
+            print(f'Got transform {type(transform)}.')
+            trans_fea, trans_series = transform.transform(data)
+            data[trans_fea] = trans_series
+            print(f'transformed data {data}')
         if feature_name == 'auto' or feature_name is None:
             data = data.rename(columns=str)
         cat_cols = list(data.select_dtypes(include=['category']).columns)
@@ -1044,10 +1050,25 @@ class _InnerPredictor:
         return out_cur_iter.value
 
 
+class FreeForm:
+    """FreeFormV2"""
+
+    def __init__(self, op: str, fea_names: list):
+        self.op = op
+        self.fea_names = fea_names
+
+    def transform(self, data: pd.DataFrame):
+        if self.op == 'max':
+            return (f"{self.op}_{'_'.join(self.fea_names)}",
+                    data[self.fea_names].max(axis=1))
+        else:
+            raise ValueError('Unsupported operation')
+
+
 class Dataset:
     """Dataset in LightGBM."""
 
-    def __init__(self, data, label=None, reference=None,
+    def __init__(self, data, label=None, transform=None, reference=None,
                  weight=None, group=None, init_score=None, silent=False,
                  feature_name='auto', categorical_feature='auto', params=None,
                  free_raw_data=True):
@@ -1094,6 +1115,7 @@ class Dataset:
         self.handle = None
         self.data = data
         self.label = label
+        self.transform = transform
         self.reference = reference
         self.weight = weight
         self.group = group
@@ -1192,7 +1214,7 @@ class Dataset:
             return self
         self.set_init_score(init_score)
 
-    def _lazy_init(self, data, label=None, reference=None,
+    def _lazy_init(self, data, label=None, transform=None, reference=None,
                    weight=None, group=None, init_score=None, predictor=None,
                    silent=False, feature_name='auto',
                    categorical_feature='auto', params=None):
@@ -1205,7 +1227,8 @@ class Dataset:
         data, feature_name, categorical_feature, self.pandas_categorical = _data_from_pandas(data,
                                                                                              feature_name,
                                                                                              categorical_feature,
-                                                                                             self.pandas_categorical)
+                                                                                             self.pandas_categorical,
+                                                                                             transform=transform)
         label = _label_from_pandas(label)
 
         # process for args
@@ -1459,7 +1482,7 @@ class Dataset:
                         self._set_init_score_by_predictor(self._predictor, self.data, used_indices)
             else:
                 # create train
-                self._lazy_init(self.data, label=self.label,
+                self._lazy_init(self.data, label=self.label, transform=self.transform,
                                 weight=self.weight, group=self.group,
                                 init_score=self.init_score, predictor=self._predictor,
                                 silent=self.silent, feature_name=self.feature_name,
