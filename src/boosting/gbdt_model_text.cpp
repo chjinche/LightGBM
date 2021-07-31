@@ -7,6 +7,7 @@
 #include <LightGBM/objective_function.h>
 #include <LightGBM/utils/array_args.h>
 #include <LightGBM/utils/common.h>
+#include <boost/algorithm/string/trim.hpp>
 
 #include <string>
 #include <sstream>
