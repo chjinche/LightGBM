@@ -311,7 +311,7 @@ class LIGHTGBM_EXPORT Boosting {
   * \param filename name of model file, if existing will continue to train from this model
   * \return The boosting object
   */
-  static Boosting* CreateBoosting(const std::string& type, const char* filename);
+  static Boosting* CreateBoosting(const std::string& type, const char* filename, const char* transform_filename="");
 
   virtual bool IsLinear() const { return false; }
 };
