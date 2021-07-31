@@ -276,7 +276,8 @@ class Parser {
   * \param precise_float_parser using precise floating point number parsing if true
   * \return Object of parser
   */
-  static Parser* CreateParser(const char* filename, bool header, int num_features, int label_idx, bool precise_float_parser);
+  static Parser* CreateParser(const char* filename, bool header, int num_features, int label_idx, bool precise_float_parser,
+                              std::string transform_file="", std::string header_file="");
 };
 
 /*! \brief The main class of data set,

@@ -7,6 +7,7 @@
 #include <string>
 #include <algorithm>
 #include <memory>
+#include <sys/stat.h>
 
 namespace LightGBM {
 
@@ -230,7 +231,17 @@ DataType GetDataType(const char* filename, bool header,
   return type;
 }
 
-Parser* Parser::CreateParser(const char* filename, bool header, int num_features, int label_idx, bool precise_float_parser) {
+Parser* Parser::CreateParser(const char* filename, bool header, int num_features, int label_idx, bool precise_float_parser,
+                             string transform_file, string header_file) {
+  std::unique_ptr<Parser> ret;
+  AtofFunc atof = precise_float_parser ? Common::AtofPrecise : Common::Atof;
+  // if transform file and header file are provided, return TransformParser.
+  struct stat buffer;
+  if (!transform_file.empty() &&  (stat (transform_file.c_str(), &buffer) == 0)
+      && !header_file.empty() && (stat (header_file.c_str(), &buffer) == 0)) {
+    ret.reset(new TransformParser(atof, transform_file, header_file));
+    return ret.release();
+  }
   const int n_read_line = 32;
   auto lines = ReadKLineFromFile(filename, header, n_read_line);
   int num_col = 0;
@@ -238,9 +249,7 @@ Parser* Parser::CreateParser(const char* filename, bool header, int num_features
   if (type == DataType::INVALID) {
     Log::Fatal("Unknown format of training data. Only CSV, TSV, and LibSVM (zero-based) formatted text files are supported.");
   }
-  std::unique_ptr<Parser> ret;
   int output_label_index = -1;
-  AtofFunc atof = precise_float_parser ? Common::AtofPrecise : Common::Atof;
   if (type == DataType::LIBSVM) {
     output_label_index = GetLabelIdxForLibsvm(lines[0], num_features, label_idx);
     ret.reset(new LibSVMParser(output_label_index, num_col, atof));
