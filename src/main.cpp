@@ -13,8 +13,7 @@ int main(int argc, char** argv) {
   try {
     LightGBM::Application app(argc, argv);
     app.Run();
-
-#ifdef USE_MPI
+ #ifdef USE_MPI
     LightGBM::Linkers::MpiFinalizeIfIsParallel();
 #endif
 
