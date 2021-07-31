@@ -154,6 +154,9 @@ struct Config {
   // desc = **Note**: can be used only in CLI version
   std::string data = "";
 
+  std::string transform_file = "";
+  std::string header_file = "";
+
   // alias = test, valid_data, valid_data_file, test_data, test_data_file, valid_filenames
   // default = ""
   // desc = path(s) of validation/test data, LightGBM will output metrics for these data

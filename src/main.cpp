@@ -8,7 +8,13 @@
 
 #include "network/linkers.h"
 
-int main(int argc, char** argv) {
+// int main(int argc, char** argv) {
+int main() {
+  int argc = 2;
+  // char* argv[] = {"../../lightgbm", "config=/mnt/chjinche/projects/LightGBM/examples/multiclass_classification/train.conf"};
+  // char* argv[] = {"../../lightgbm", "config=/mnt/chjinche/projects/LightGBM/tests/data/l2_train.conf"};
+  // char* argv[] = {"../../lightgbm", "config=/mnt/chjinche/projects/LightGBM/tests/cpp_tests/predict.conf"};
+  char* argv[] = {"../../lightgbm", "config=/mnt/chjinche/projects/LightGBM/tests/data/l2_predict.conf"};
   bool success = false;
   try {
     LightGBM::Application app(argc, argv);

@@ -253,14 +253,15 @@ void Application::Predict() {
                         config_.pred_early_stop_margin);
     predictor.Predict(config_.data.c_str(),
                       config_.output_result.c_str(), config_.header, config_.predict_disable_shape_check,
-                      config_.precise_float_parser);
+                      config_.precise_float_parser,
+                      config_.transform_file, config_.header_file);
     Log::Info("Finished prediction");
   }
 }
 
 void Application::InitPredict() {
   boosting_.reset(
-    Boosting::CreateBoosting("gbdt", config_.input_model.c_str()));
+    Boosting::CreateBoosting("gbdt", config_.input_model.c_str(), config_.transform_file.c_str()));
   Log::Info("Finished initializing prediction, total used %d iterations", boosting_->GetCurrentIteration());
 }
 

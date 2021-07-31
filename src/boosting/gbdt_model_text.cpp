@@ -408,7 +408,19 @@ bool GBDT::SaveModelToFile(int start_iteration, int num_iteration, int feature_i
   if (!writer->Init()) {
     Log::Fatal("Model file %s is not available for writes", filename);
   }
-  std::string str_to_write = SaveModelToString(start_iteration, num_iteration, feature_importance_type);
+  std::string transform_str_to_write = "";
+  if (config_ != nullptr && ! config_->transform_file.empty()) {
+    //Save transform to model file.
+    std::ifstream fin(config_->transform_file.c_str());
+    transform_str_to_write = "transform\n";
+    std::string data_line;
+    while (std::getline(fin, data_line)) {
+      transform_str_to_write += data_line;
+    }
+    transform_str_to_write += "end of transforms\n\n";
+  }
+  std::string model_str_to_write = SaveModelToString(start_iteration, num_iteration, feature_importance_type);
+  std::string str_to_write = transform_str_to_write.empty()? model_str_to_write: transform_str_to_write + model_str_to_write; 
   auto size = writer->Write(str_to_write.c_str(), str_to_write.size());
   return size > 0;
 }
