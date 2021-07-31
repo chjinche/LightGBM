@@ -3,6 +3,7 @@
  * Licensed under the MIT License. See LICENSE file in the project root for license information.
  */
 #include <LightGBM/boosting.h>
+#include <boost/algorithm/string/trim.hpp>
 
 #include "dart.hpp"
 #include "gbdt.h"
@@ -47,6 +48,33 @@ Boosting* Boosting::CreateBoosting(const std::string& type, const char* filename
     }
   } else {
     std::unique_ptr<Boosting> ret;
+    // split model file to transform and real model file.
+    if (GetBoostingTypeFromModelFile(filename) == std::string("transform")){
+      std::ifstream fin(filename);
+      std::string line;
+      std::vector<std::string> transform_lines, model_lines;
+      bool is_transform = true;
+      while (std::getline(fin, line)){
+        boost::trim(line);
+        if (line == std::string("tree"))
+          is_transform = false;
+        if (is_transform)
+          transform_lines.push_back(line);
+        else
+          model_lines.push_back(line);
+      }
+      fin.close();
+      //TODO: remove the hard code.
+      std::ofstream tfout("/mnt/chjinche/projects/LightGBM/tests/data/split_transform");
+      for(auto str : transform_lines)
+        tfout << str << std::endl;
+      tfout.close();
+      
+      std::ofstream mfout(filename);
+      for(auto str : model_lines)
+        mfout << str << std::endl;
+      mfout.close();
+    }
     if (GetBoostingTypeFromModelFile(filename) == std::string("tree")) {
       if (type == std::string("gbdt")) {
         ret.reset(new GBDT());
@@ -60,6 +88,9 @@ Boosting* Boosting::CreateBoosting(const std::string& type, const char* filename
         Log::Fatal("Unknown boosting type %s", type.c_str());
       }
       LoadFileToBoosting(ret.get(), filename);
+    } else if (GetBoostingTypeFromModelFile(filename) == std::string("transform")){
+
+
     } else {
       Log::Fatal("Unknown model format or submodel type in model file %s", filename);
     }

@@ -9,6 +9,8 @@
 #include <LightGBM/utils/json11.h>
 #include <LightGBM/utils/log.h>
 #include <LightGBM/utils/openmp_wrapper.h>
+#include "TransformProcessor.h"
+#include "parser.hpp"
 
 #include <chrono>
 #include <fstream>
@@ -206,7 +208,12 @@ Dataset* DatasetLoader::LoadFromFile(const char* filename, int rank, int num_mac
     dataset->metadata_.Init(filename);
     if (!config_.two_round) {
       // read data to memory
-      auto text_data = LoadTextDataToMemory(filename, dataset->metadata_, rank, num_machines, &num_global_data, &used_data_indices);
+      // auto text_data = LoadTextDataToMemory(filename, dataset->metadata_, rank, num_machines, &num_global_data, &used_data_indices);
+      auto text_data = LoadTextDataToMemory(filename,
+        "/mnt/chjinche/projects/LightGBM/tests/data/SmoothedTrainInputIni",
+        "/mnt/chjinche/projects/LightGBM/tests/data/clean_header",
+        &parser
+      );
       dataset->num_data_ = static_cast<data_size_t>(text_data.size());
       // sample data
       auto sample_data = SampleTextDataFromMemory(text_data);
@@ -838,6 +845,20 @@ void DatasetLoader::CheckDataset(const Dataset* dataset, bool is_load_from_binar
       Log::Info("Recommend use integer for label index when loading data from binary for sanity check.");
     }
   }
+}
+
+std::vector<std::string> DatasetLoader::LoadTextDataToMemory(const char* filename, std::string fea_spec_path, std::string header_path, std::unique_ptr<Parser> * ret){
+  std::string data_path(filename);
+  vector<string> transformed_data = Transform(fea_spec_path, header_path, data_path, "");
+  string output_path = "/mnt/chjinche/projects/LightGBM/tests/data/debug_transformed";
+  ofstream output_fout(output_path.c_str());
+  for(auto str : transformed_data)
+    output_fout << str << endl;
+  output_fout.close();
+  //reset parser
+  //TODO: remove hack.
+  ret->reset(new LibSVMParser(0, 5872, Common::AtofPrecise));
+  return std::move(transformed_data);
 }
 
 std::vector<std::string> DatasetLoader::LoadTextDataToMemory(const char* filename, const Metadata& metadata,

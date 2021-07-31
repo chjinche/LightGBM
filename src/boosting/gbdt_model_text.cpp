@@ -408,7 +408,15 @@ bool GBDT::SaveModelToFile(int start_iteration, int num_iteration, int feature_i
   if (!writer->Init()) {
     Log::Fatal("Model file %s is not available for writes", filename);
   }
-  std::string str_to_write = SaveModelToString(start_iteration, num_iteration, feature_importance_type);
+  //TODO: remove the hard code.
+  std::string fea_spec_path = "/mnt/chjinche/projects/LightGBM/tests/data/SmoothedTrainInputIni";
+  std::ifstream fin(fea_spec_path.c_str());
+  std::string transform_str_to_write="transform\n", data_line;
+  while (std::getline(fin, data_line)) {
+    transform_str_to_write += data_line;
+  }
+  std::string model_str_to_write = SaveModelToString(start_iteration, num_iteration, feature_importance_type);
+  std::string str_to_write = transform_str_to_write + "\n" + model_str_to_write; 
   auto size = writer->Write(str_to_write.c_str(), str_to_write.size());
   return size > 0;
 }

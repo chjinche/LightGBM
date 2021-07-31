@@ -20,6 +20,11 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include "TransformProcessor.h"
+#include "../io/parser.hpp"
+#include <sys/stat.h>
+#include <fstream>
+
 
 namespace LightGBM {
 
@@ -168,6 +173,25 @@ class Predictor {
     auto label_idx = header ? -1 : boosting_->LabelIdx();
     auto parser = std::unique_ptr<Parser>(Parser::CreateParser(data_filename, header, boosting_->MaxFeatureIdx() + 1, label_idx,
                                                                precise_float_parser));
+    // TODO: remove hard code.
+    string transform_filename = "/mnt/chjinche/projects/LightGBM/tests/data/split_transform";
+    string header_path = "/mnt/chjinche/projects/LightGBM/tests/data/clean_header";
+    struct stat buffer;
+    bool exists = (stat (transform_filename.c_str(), &buffer) == 0);
+    if (exists){
+      std::string data_path(data_filename);
+      std::vector<string> transformed_data = Transform(transform_filename, header_path, data_path, "");
+      //TODO: change Transform lib interface that processes single line, cause predict is parallel.    
+      // ofstream output_fout(output_path.c_str());
+      // std::ofstream fout;
+      std::ofstream fout(data_filename);
+      for (auto str: transformed_data)
+        fout << str << std::endl;
+      fout.close();
+      //reset parser
+      //TODO: remove hack, and check whether query id should be treated as a feature.
+      parser.reset(new LibSVMParser(0, 5873, Common::AtofPrecise));
+    }   
 
     if (parser == nullptr) {
       Log::Fatal("Could not recognize the data format of data file %s", data_filename);
