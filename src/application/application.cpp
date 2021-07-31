@@ -214,13 +214,20 @@ void Application::Train() {
   if (config_.convert_model_language == std::string("cpp")) {
     boosting_->SaveModelToIfElse(-1, config_.convert_model.c_str());
   }
+  // save transform file
+  if (!config_.transform_file.empty())
+    Common::CopyFile(config_.transform_file, config_.output_model + ".transform");
+  // save header file
+  if (!config_.header_file.empty())
+    Common::CopyFile(config_.header_file, config_.output_model + ".header");
+
   Log::Info("Finished training");
 }
 
 void Application::Predict() {
   if (config_.task == TaskType::KRefitTree) {
     // create predictor
-    Predictor predictor(boosting_.get(), 0, -1, false, true, false, false, 1, 1);
+    Predictor predictor(boosting_.get(), 0, -1, false, true, false, false, 1, 1, model_path_);
     predictor.Predict(config_.data.c_str(), config_.output_result.c_str(), config_.header, config_.predict_disable_shape_check,
                       config_.precise_float_parser);
     TextReader<int> result_reader(config_.output_result.c_str(), false);
@@ -250,7 +257,7 @@ void Application::Predict() {
     Predictor predictor(boosting_.get(), config_.start_iteration_predict, config_.num_iteration_predict, config_.predict_raw_score,
                         config_.predict_leaf_index, config_.predict_contrib,
                         config_.pred_early_stop, config_.pred_early_stop_freq,
-                        config_.pred_early_stop_margin);
+                        config_.pred_early_stop_margin, model_path_);
     predictor.Predict(config_.data.c_str(),
                       config_.output_result.c_str(), config_.header, config_.predict_disable_shape_check,
                       config_.precise_float_parser);
@@ -261,6 +268,7 @@ void Application::Predict() {
 void Application::InitPredict() {
   boosting_.reset(
     Boosting::CreateBoosting("gbdt", config_.input_model.c_str()));
+  model_path_ = config_.input_model;
   Log::Info("Finished initializing prediction, total used %d iterations", boosting_->GetCurrentIteration());
 }
 

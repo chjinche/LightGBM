@@ -2486,6 +2486,7 @@ class Booster:
         self.__set_objective_to_none = False
         self.best_iteration = -1
         self.best_score = {}
+        self.model_file = model_file
         params = {} if params is None else deepcopy(params)
         # user can set verbose with params, it has higher priority
         if not any(verbose_alias in params for verbose_alias in _ConfigAliases.get("verbosity")) and silent:
@@ -2566,7 +2567,8 @@ class Booster:
             _safe_call(_LIB.LGBM_BoosterCreateFromModelfile(
                 c_str(str(model_file)),
                 ctypes.byref(out_num_iterations),
-                ctypes.byref(self.handle)))
+                ctypes.byref(self.handle)
+                ))
             out_num_class = ctypes.c_int(0)
             _safe_call(_LIB.LGBM_BoosterGetNumClasses(
                 self.handle,
@@ -3198,7 +3200,8 @@ class Booster:
         return [item for i in range(1, self.__num_dataset)
                 for item in self.__inner_eval(self.name_valid_sets[i - 1], i, feval)]
 
-    def save_model(self, filename, num_iteration=None, start_iteration=0, importance_type='split'):
+    def save_model(self, filename, transform_file="", header_file="", num_iteration=None, start_iteration=0,
+                   importance_type='split'):
         """Save Booster to file.
 
         Parameters
@@ -3229,7 +3232,10 @@ class Booster:
             ctypes.c_int(start_iteration),
             ctypes.c_int(num_iteration),
             ctypes.c_int(importance_type_int),
-            c_str(str(filename))))
+            c_str(str(filename)),
+            c_str(str(transform_file)),
+            c_str(str(header_file))
+            ))
         _dump_pandas_categorical(self.pandas_categorical, filename)
         return self
 
@@ -3452,6 +3458,8 @@ class Booster:
             Prediction result.
             Can be sparse or a list of sparse objects (each element represents predictions for one class) for feature contributions (when ``pred_contrib=True``).
         """
+        # merge input_model to predictor parameters.
+        kwargs = {**kwargs, **{'input_model': self.model_file}}
         predictor = self._to_predictor(deepcopy(kwargs))
         if num_iteration is None:
             if start_iteration <= 0:

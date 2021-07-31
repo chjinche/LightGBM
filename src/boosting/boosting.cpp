@@ -3,6 +3,7 @@
  * Licensed under the MIT License. See LICENSE file in the project root for license information.
  */
 #include <LightGBM/boosting.h>
+#include <boost/algorithm/string/trim.hpp>
 
 #include "dart.hpp"
 #include "gbdt.h"

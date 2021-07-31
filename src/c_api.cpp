@@ -421,7 +421,7 @@ class Booster {
     }
 
     return Predictor(boosting_.get(), start_iteration, num_iteration, is_raw_score, is_predict_leaf, predict_contrib,
-                        config.pred_early_stop, config.pred_early_stop_freq, config.pred_early_stop_margin);
+                        config.pred_early_stop, config.pred_early_stop_freq, config.pred_early_stop_margin, config.input_model);
   }
 
   void Predict(int start_iteration, int num_iteration, int predict_type, int nrow, int ncol,
@@ -711,7 +711,7 @@ class Booster {
       is_raw_score = false;
     }
     Predictor predictor(boosting_.get(), start_iteration, num_iteration, is_raw_score, is_predict_leaf, predict_contrib,
-                        config.pred_early_stop, config.pred_early_stop_freq, config.pred_early_stop_margin);
+                        config.pred_early_stop, config.pred_early_stop_freq, config.pred_early_stop_margin, config.input_model);
     bool bool_data_has_header = data_has_header > 0 ? true : false;
     predictor.Predict(data_filename, result_filename, bool_data_has_header, config.predict_disable_shape_check,
                       config.precise_float_parser);
@@ -840,6 +840,7 @@ using LightGBM::Common::CheckElementsIntervalClosed;
 using LightGBM::Common::RemoveQuotationSymbol;
 using LightGBM::Common::Vector2Ptr;
 using LightGBM::Common::VectorSize;
+using LightGBM::Common::CopyFile;
 using LightGBM::Config;
 using LightGBM::data_size_t;
 using LightGBM::Dataset;
@@ -1580,7 +1581,9 @@ int LGBM_BoosterCreate(const DatasetHandle train_data,
 int LGBM_BoosterCreateFromModelfile(
   const char* filename,
   int* out_num_iterations,
-  BoosterHandle* out) {
+  BoosterHandle* out
+  ) {
+  // Log::Info("c_api booster create from model file %s", *transform_filename);
   API_BEGIN();
   auto ret = std::unique_ptr<Booster>(new Booster(filename));
   *out_num_iterations = ret->GetBoosting()->GetCurrentIteration();
@@ -2244,11 +2247,22 @@ int LGBM_BoosterSaveModel(BoosterHandle handle,
                           int start_iteration,
                           int num_iteration,
                           int feature_importance_type,
-                          const char* filename) {
+                          const char* filename,
+                          const char* transform_filename,
+                          const char* header_filename) {
   API_BEGIN();
   Booster* ref_booster = reinterpret_cast<Booster*>(handle);
   ref_booster->SaveModelToFile(start_iteration, num_iteration,
-                               feature_importance_type, filename);
+                              feature_importance_type, filename);
+  std::string model_output_path(filename);
+  if (transform_filename && *transform_filename != '\0') {
+    std::string str_transform(transform_filename);
+    CopyFile(str_transform, model_output_path + ".transform");
+  }
+  if (header_filename && *header_filename != '\0') {
+    std::string str_header(header_filename);
+    CopyFile(str_header, model_output_path + ".header");
+  }
   API_END();
 }
 
