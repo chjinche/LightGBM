@@ -5,7 +5,7 @@ OPTION(USE_SWIG "Enable SWIG to generate Java API" OFF)
 OPTION(USE_HDFS "Enable HDFS support (EXPERIMENTAL)" OFF)
 OPTION(USE_TIMETAG "Set to ON to output time costs" OFF)
 OPTION(USE_CUDA "Enable CUDA-accelerated training (EXPERIMENTAL)" OFF)
-OPTION(USE_DEBUG "Set to ON for Debug mode" OFF)
+OPTION(USE_DEBUG "Set to ON for Debug mode" ON)
 OPTION(USE_SANITIZER "Use santizer flags" OFF)
 SET(ENABLED_SANITIZERS "address" "leak" "undefined" CACHE STRING
   "Semicolon separated list of sanitizer names. E.g 'address;leak'. Supported sanitizers are
@@ -356,6 +356,7 @@ endif(USE_CUDA)
 )
 
 add_executable(lightgbm src/main.cpp src/application/application.cpp ${SOURCES})
+target_link_libraries(lightgbm /usr/local/lib/libTransformProcessor.so)
 list(APPEND SOURCES "src/c_api.cpp")
 
 # Only build the R part of the library if building for
@@ -424,8 +425,8 @@ if(USE_OPENMP)
 endif(USE_OPENMP)
 
 if(USE_GPU)
-  TARGET_LINK_LIBRARIES(lightgbm ${OpenCL_LIBRARY} ${Boost_LIBRARIES})
-  TARGET_LINK_LIBRARIES(_lightgbm ${OpenCL_LIBRARY} ${Boost_LIBRARIES})
+  TARGET_LINK_LIBRARIES(lightgbm ${OpenCL_LIBRARY} ${Boost_LIBRARIES} libTransformProcessor.so)
+  TARGET_LINK_LIBRARIES(_lightgbm ${OpenCL_LIBRARY} ${Boost_LIBRARIES} libTransformProcessor.so)
 endif(USE_GPU)
 
 if(__INTEGRATE_OPENCL)
@@ -437,8 +438,8 @@ if(__INTEGRATE_OPENCL)
   target_include_directories(_lightgbm PRIVATE ${INTEGRATED_OPENCL_INCLUDES})
   target_compile_definitions(lightgbm PRIVATE ${INTEGRATED_OPENCL_DEFINITIONS})
   target_compile_definitions(_lightgbm PRIVATE ${INTEGRATED_OPENCL_DEFINITIONS})
-  target_link_libraries(lightgbm PRIVATE ${INTEGRATED_OPENCL_LIBRARIES})
-  target_link_libraries(_lightgbm PRIVATE ${INTEGRATED_OPENCL_LIBRARIES})
+  target_link_libraries(lightgbm PRIVATE ${INTEGRATED_OPENCL_LIBRARIES} libTransformProcessor.so)
+  target_link_libraries(_lightgbm PRIVATE ${INTEGRATED_OPENCL_LIBRARIES} libTransformProcessor.so)
 endif()
 
 if(USE_CUDA)
@@ -508,7 +509,7 @@ if(BUILD_CPP_TEST)
     endforeach()
   endif(MSVC)
   add_executable(testlightgbm ${CPP_TEST_SOURCES} ${SOURCES})
-  target_link_libraries(testlightgbm PRIVATE GTest::GTest)
+  target_link_libraries(testlightgbm PRIVATE GTest::GTest libTransformProcessor.so)
 endif()
 
 install(TARGETS lightgbm _lightgbm

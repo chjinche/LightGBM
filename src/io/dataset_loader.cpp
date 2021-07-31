@@ -9,6 +9,9 @@
 #include <LightGBM/utils/json11.h>
 #include <LightGBM/utils/log.h>
 #include <LightGBM/utils/openmp_wrapper.h>
+#include "TransformProcessor.h"
+#include "IniFileParserInterface.h"
+#include "parser.hpp"
 
 #include <chrono>
 #include <fstream>
@@ -206,7 +209,12 @@ Dataset* DatasetLoader::LoadFromFile(const char* filename, int rank, int num_mac
     dataset->metadata_.Init(filename);
     if (!config_.two_round) {
       // read data to memory
-      auto text_data = LoadTextDataToMemory(filename, dataset->metadata_, rank, num_machines, &num_global_data, &used_data_indices);
+      std::vector<std::string> text_data;
+      if (!config_.transform_file.empty() && !config_.header_file.empty()) {
+        text_data = LoadTextDataToMemory(filename, config_.transform_file, config_.header_file, &parser);
+      } else {
+        text_data = LoadTextDataToMemory(filename, dataset->metadata_, rank, num_machines, &num_global_data, &used_data_indices);
+      }
       dataset->num_data_ = static_cast<data_size_t>(text_data.size());
       // sample data
       auto sample_data = SampleTextDataFromMemory(text_data);
@@ -838,6 +846,24 @@ void DatasetLoader::CheckDataset(const Dataset* dataset, bool is_load_from_binar
       Log::Info("Recommend use integer for label index when loading data from binary for sanity check.");
     }
   }
+}
+
+std::vector<std::string> DatasetLoader::LoadTextDataToMemory(const char* data_file, std::string transform_file, std::string header_file, std::unique_ptr<Parser> * ret){
+  std::string str_data_file(data_file);
+  // TODO: use single line process interface.
+  std::vector<string> transformed_data = Transform(transform_file, header_file, str_data_file, "");
+  // TODO: remove below debug codes.
+  std::string output_path = "debug_transformed";
+  std::ofstream output_fout(output_path.c_str());
+  for(auto str : transformed_data)
+    output_fout << str << endl;
+  output_fout.close();
+  //reset parser
+  IniFileParserInterface* from_input_ini = IniFileParserInterface::CreateFromInputIni(transform_file);
+  // TODO: check if we should add query id to features, use +1 to workaround.
+  int total_columns = from_input_ini->GetInputCount() + 1;
+  ret->reset(new LibSVMParser(0, total_columns, Common::AtofPrecise));
+  return std::move(transformed_data);
 }
 
 std::vector<std::string> DatasetLoader::LoadTextDataToMemory(const char* filename, const Metadata& metadata,
