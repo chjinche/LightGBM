@@ -355,7 +355,7 @@ if(USE_CUDA)
 endif(USE_CUDA)
 )
 
-add_executable(lightgbm src/main.cpp src/application/application.cpp ${SOURCES})
+add_executable(lightgbm src/main.cpp src/application/application.cpp ${SOURCES} src/c_api.cpp)
 target_link_libraries(lightgbm /usr/local/lib/libTransformProcessor.so)
 list(APPEND SOURCES "src/c_api.cpp")
 
