@@ -177,6 +177,8 @@ const std::unordered_set<std::string>& Config::parameter_set() {
   "objective",
   "boosting",
   "data",
+  "transform_file",
+  "header_file",
   "valid",
   "num_iterations",
   "learning_rate",
@@ -310,6 +312,8 @@ const std::unordered_set<std::string>& Config::parameter_set() {
 void Config::GetMembersFromString(const std::unordered_map<std::string, std::string>& params) {
   std::string tmp_str = "";
   GetString(params, "data", &data);
+  GetString(params, "transform_file", &transform_file);
+  GetString(params, "header_file", &header_file);
 
   if (GetString(params, "valid", &tmp_str)) {
     valid = Common::Split(tmp_str.c_str(), ',');
@@ -635,6 +639,8 @@ void Config::GetMembersFromString(const std::unordered_map<std::string, std::str
 std::string Config::SaveMembersToString() const {
   std::stringstream str_buf;
   str_buf << "[data: " << data << "]\n";
+  str_buf << "[transform_file: " << transform_file << "]\n";
+  str_buf << "[header_file: " << header_file << "]\n";
   str_buf << "[valid: " << Common::Join(valid, ",") << "]\n";
   str_buf << "[num_iterations: " << num_iterations << "]\n";
   str_buf << "[learning_rate: " << learning_rate << "]\n";
