@@ -30,6 +30,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <fstream>
 
 #if (!((defined(sun) || defined(__sun)) && (defined(__SVR4) || defined(__svr4__))))
 #define FMT_HEADER_ONLY
@@ -198,6 +199,17 @@ inline static std::vector<std::string> Split(const char* c_str, const char* deli
     ret.push_back(str.substr(i));
   }
   return ret;
+}
+
+inline static void CopyFile(std::string source_file, std::string target_file){
+  //TODO: use boost filesystem copyfile to replace below codes, however, met ld error.
+  std::ifstream fin(source_file.c_str());
+  std::ofstream fout(target_file.c_str());
+  std::string line;
+  while (std::getline(fin, line)) {
+    fout << line << std::endl;
+  }
+  fout.close();
 }
 
 template<typename T>
