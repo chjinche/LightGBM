@@ -208,8 +208,12 @@ void Application::InitTrain() {
 void Application::Train() {
   Log::Info("Started training...");
   boosting_->Train(config_.snapshot_freq, config_.output_model);
-  boosting_->SaveModelToFile(0, -1, config_.saved_feature_importance_type,
-                             config_.output_model.c_str());
+  if (!config_.transform_file.empty())
+    boosting_->SaveModelAndTransformToFile(0, -1, config_.saved_feature_importance_type,
+                                           config_.output_model.c_str(), config_.transform_file.c_str());
+  else
+    boosting_->SaveModelToFile(0, -1, config_.saved_feature_importance_type,
+                               config_.output_model.c_str());
   // convert model to if-else statement code
   if (config_.convert_model_language == std::string("cpp")) {
     boosting_->SaveModelToIfElse(-1, config_.convert_model.c_str());
