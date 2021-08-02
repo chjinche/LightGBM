@@ -206,6 +206,8 @@ class LIGHTGBM_EXPORT Boosting {
   */
   virtual bool SaveModelToFile(int start_iteration, int num_iterations, int feature_importance_type, const char* filename) const = 0;
 
+  virtual bool SaveModelAndTransformToFile(int start_iteration, int num_iterations, int feature_importance_type, const char* filename, const char* transform_filename) const = 0;
+
   /*!
   * \brief Save model to string
   * \param start_iteration The model will be saved start from
