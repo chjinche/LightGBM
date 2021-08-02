@@ -109,6 +109,10 @@ class Booster {
     boosting_.reset(Boosting::CreateBoosting("gbdt", filename));
   }
 
+  explicit Booster(const char* filename, const char* transform_filename) {
+    boosting_.reset(Boosting::CreateBoosting("gbdt", filename, transform_filename));
+  }
+
   Booster(const Dataset* train_data,
           const char* parameters) {
     auto param = Config::Str2Map(parameters);
@@ -714,7 +718,7 @@ class Booster {
                         config.pred_early_stop, config.pred_early_stop_freq, config.pred_early_stop_margin);
     bool bool_data_has_header = data_has_header > 0 ? true : false;
     predictor.Predict(data_filename, result_filename, bool_data_has_header, config.predict_disable_shape_check,
-                      config.precise_float_parser);
+                      config.precise_float_parser, config.transform_file, config.header_file);
   }
 
   void GetPredictAt(int data_idx, double* out_result, int64_t* out_len) const {
@@ -723,6 +727,10 @@ class Booster {
 
   void SaveModelToFile(int start_iteration, int num_iteration, int feature_importance_type, const char* filename) const {
     boosting_->SaveModelToFile(start_iteration, num_iteration, feature_importance_type, filename);
+  }
+
+  void SaveModelAndTransformToFile(int start_iteration, int num_iteration, int feature_importance_type, const char* filename, const char* transform_filename) const {
+    boosting_->SaveModelAndTransformToFile(start_iteration, num_iteration, feature_importance_type, filename, transform_filename);
   }
 
   void LoadModelFromString(const char* model_str) {
@@ -1580,9 +1588,12 @@ int LGBM_BoosterCreate(const DatasetHandle train_data,
 int LGBM_BoosterCreateFromModelfile(
   const char* filename,
   int* out_num_iterations,
-  BoosterHandle* out) {
+  BoosterHandle* out,
+  const char* transform_filename
+  ) {
+  // Log::Info("c_api booster create from model file %s", *transform_filename);
   API_BEGIN();
-  auto ret = std::unique_ptr<Booster>(new Booster(filename));
+  auto ret = std::unique_ptr<Booster>(new Booster(filename, transform_filename));
   *out_num_iterations = ret->GetBoosting()->GetCurrentIteration();
   *out = ret.release();
   API_END();
@@ -2244,11 +2255,15 @@ int LGBM_BoosterSaveModel(BoosterHandle handle,
                           int start_iteration,
                           int num_iteration,
                           int feature_importance_type,
-                          const char* filename) {
+                          const char* filename,
+                          const char* transform_filename) {
   API_BEGIN();
   Booster* ref_booster = reinterpret_cast<Booster*>(handle);
-  ref_booster->SaveModelToFile(start_iteration, num_iteration,
-                               feature_importance_type, filename);
+  if (transform_filename && *transform_filename != '\0')
+    ref_booster->SaveModelAndTransformToFile(start_iteration, num_iteration, feature_importance_type, filename, transform_filename);
+  else
+    ref_booster->SaveModelToFile(start_iteration, num_iteration,
+                                 feature_importance_type, filename);
   API_END();
 }
 

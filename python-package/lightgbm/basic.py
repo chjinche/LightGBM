@@ -2462,7 +2462,7 @@ class Dataset:
 class Booster:
     """Booster in LightGBM."""
 
-    def __init__(self, params=None, train_set=None, model_file=None, model_str=None, silent=False):
+    def __init__(self, params=None, train_set=None, model_file=None, model_str=None, silent=False, transform_file=None):
         """Initialize the Booster.
 
         Parameters
@@ -2563,10 +2563,13 @@ class Booster:
             # Prediction task
             out_num_iterations = ctypes.c_int(0)
             self.handle = ctypes.c_void_p()
+            print(f'Creating from model file. Transform file {transform_file}')
             _safe_call(_LIB.LGBM_BoosterCreateFromModelfile(
                 c_str(str(model_file)),
                 ctypes.byref(out_num_iterations),
-                ctypes.byref(self.handle)))
+                ctypes.byref(self.handle),
+                c_str(str(transform_file))
+                ))
             out_num_class = ctypes.c_int(0)
             _safe_call(_LIB.LGBM_BoosterGetNumClasses(
                 self.handle,
@@ -3198,7 +3201,7 @@ class Booster:
         return [item for i in range(1, self.__num_dataset)
                 for item in self.__inner_eval(self.name_valid_sets[i - 1], i, feval)]
 
-    def save_model(self, filename, num_iteration=None, start_iteration=0, importance_type='split'):
+    def save_model(self, filename, transform_file="", num_iteration=None, start_iteration=0, importance_type='split'):
         """Save Booster to file.
 
         Parameters
@@ -3229,7 +3232,9 @@ class Booster:
             ctypes.c_int(start_iteration),
             ctypes.c_int(num_iteration),
             ctypes.c_int(importance_type_int),
-            c_str(str(filename))))
+            c_str(str(filename)),
+            c_str(str(transform_file))
+            ))
         _dump_pandas_categorical(self.pandas_categorical, filename)
         return self
 
