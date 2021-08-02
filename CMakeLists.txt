@@ -371,6 +371,8 @@ else()
   add_library(_lightgbm SHARED ${SOURCES})
 endif(BUILD_STATIC_LIB)
 
+target_link_libraries(_lightgbm /usr/local/lib/libTransformProcessor.so)
+
 if(MSVC)
   set_target_properties(_lightgbm PROPERTIES OUTPUT_NAME "lib_lightgbm")
 endif(MSVC)
