@@ -454,7 +454,8 @@ LIGHTGBM_C_EXPORT int LGBM_BoosterCreate(const DatasetHandle train_data,
  */
 LIGHTGBM_C_EXPORT int LGBM_BoosterCreateFromModelfile(const char* filename,
                                                       int* out_num_iterations,
-                                                      BoosterHandle* out);
+                                                      BoosterHandle* out,
+                                                      const char* transform_filename="");
 
 /*!
  * \brief Load an existing booster from string.
@@ -1190,7 +1191,8 @@ LIGHTGBM_C_EXPORT int LGBM_BoosterSaveModel(BoosterHandle handle,
                                             int start_iteration,
                                             int num_iteration,
                                             int feature_importance_type,
-                                            const char* filename);
+                                            const char* filename,
+                                            const char* transform_filename="");
 
 /*!
  * \brief Save model to string.
