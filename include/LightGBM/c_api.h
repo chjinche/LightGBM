@@ -1190,7 +1190,8 @@ LIGHTGBM_C_EXPORT int LGBM_BoosterSaveModel(BoosterHandle handle,
                                             int start_iteration,
                                             int num_iteration,
                                             int feature_importance_type,
-                                            const char* filename);
+                                            const char* filename,
+                                            const char* transform_filename="");
 
 /*!
  * \brief Save model to string.

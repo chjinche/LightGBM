@@ -3197,7 +3197,7 @@ class Booster:
         return [item for i in range(1, self.__num_dataset)
                 for item in self.__inner_eval(self.name_valid_sets[i - 1], i, feval)]
 
-    def save_model(self, filename, num_iteration=None, start_iteration=0, importance_type='split'):
+    def save_model(self, filename, transform_file="", num_iteration=None, start_iteration=0, importance_type='split'):
         """Save Booster to file.
 
         Parameters
@@ -3228,7 +3228,9 @@ class Booster:
             ctypes.c_int(start_iteration),
             ctypes.c_int(num_iteration),
             ctypes.c_int(importance_type_int),
-            c_str(str(filename))))
+            c_str(str(filename)),
+            c_str(str(transform_file))
+            ))
         _dump_pandas_categorical(self.pandas_categorical, filename)
         return self
 

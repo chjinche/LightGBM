@@ -725,6 +725,10 @@ class Booster {
     boosting_->SaveModelToFile(start_iteration, num_iteration, feature_importance_type, filename);
   }
 
+  void SaveModelAndTransformToFile(int start_iteration, int num_iteration, int feature_importance_type, const char* filename, const char* transform_filename) const {
+    boosting_->SaveModelAndTransformToFile(start_iteration, num_iteration, feature_importance_type, filename, transform_filename);
+  }
+
   void LoadModelFromString(const char* model_str) {
     size_t len = std::strlen(model_str);
     boosting_->LoadModelFromString(model_str, len);
@@ -2244,11 +2248,15 @@ int LGBM_BoosterSaveModel(BoosterHandle handle,
                           int start_iteration,
                           int num_iteration,
                           int feature_importance_type,
-                          const char* filename) {
+                          const char* filename,
+                          const char* transform_filename) {
   API_BEGIN();
   Booster* ref_booster = reinterpret_cast<Booster*>(handle);
-  ref_booster->SaveModelToFile(start_iteration, num_iteration,
-                               feature_importance_type, filename);
+  if (transform_filename && *transform_filename != '\0')
+    ref_booster->SaveModelAndTransformToFile(start_iteration, num_iteration, feature_importance_type, filename, transform_filename);
+  else
+    ref_booster->SaveModelToFile(start_iteration, num_iteration,
+                                 feature_importance_type, filename);
   API_END();
 }
 
