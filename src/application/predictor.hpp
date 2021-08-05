@@ -181,7 +181,9 @@ class Predictor {
     if (exists){
       Log::Info("Detected transform file.");
       std::string str_data_filename(data_filename);
-      core_data_filename = core_data_filename + ".core";
+      // TODO: to be improved, cause tmpnam is dangerous.
+      core_data_filename = std::tmpnam(nullptr);
+      Log::Info("Created a tmp data file: %s", core_data_filename.c_str());
       std::vector<string> transformed_data = Transform(transform_file, header_file, str_data_filename, "");
       //TODO: use single line processor of Transform lib rather than modify raw data, cause predict is parallel.    
       std::ofstream fout(core_data_filename.c_str());

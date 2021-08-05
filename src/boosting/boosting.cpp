@@ -72,8 +72,10 @@ Boosting* Boosting::CreateBoosting(const std::string& type, const char* filename
       for(auto str : transform_lines)
         tfout << str << std::endl;
       tfout.close();
-      
-      core_model_filename = core_model_filename + ".core";
+
+      // TODO: to be improved, cause tmpnam is dangerous.
+      core_model_filename = std::tmpnam(nullptr);
+      Log::Info("Created a tmp model file: %s", core_model_filename.c_str());
       std::ofstream mfout(core_model_filename);
       for(auto str : model_lines)
         mfout << str << std::endl;
