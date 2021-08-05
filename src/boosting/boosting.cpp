@@ -34,6 +34,8 @@ bool Boosting::LoadFileToBoosting(Boosting* boosting, const char* filename) {
 }
 
 Boosting* Boosting::CreateBoosting(const std::string& type, const char* filename, const char* transform_filename) {
+  // save model copy.
+  std::string core_model_filename(filename);
   if (filename == nullptr || filename[0] == '\0') {
     if (type == std::string("gbdt")) {
       return new GBDT();
@@ -50,6 +52,7 @@ Boosting* Boosting::CreateBoosting(const std::string& type, const char* filename
     std::unique_ptr<Boosting> ret;
     // split model file to transform and real model file.
     if (GetBoostingTypeFromModelFile(filename) == std::string("transform")){
+      Log::Info("The model has transform section. Splitting ...");
       //TODO: verify transform_file is given.
       std::ifstream fin(filename);
       std::string line;
@@ -70,12 +73,13 @@ Boosting* Boosting::CreateBoosting(const std::string& type, const char* filename
         tfout << str << std::endl;
       tfout.close();
       
-      std::ofstream mfout(filename);
+      core_model_filename = core_model_filename + ".core";
+      std::ofstream mfout(core_model_filename);
       for(auto str : model_lines)
         mfout << str << std::endl;
       mfout.close();
     }
-    if (GetBoostingTypeFromModelFile(filename) == std::string("tree")) {
+    if (GetBoostingTypeFromModelFile(core_model_filename.c_str()) == std::string("tree")) {
       if (type == std::string("gbdt")) {
         ret.reset(new GBDT());
       } else if (type == std::string("dart")) {
@@ -87,7 +91,7 @@ Boosting* Boosting::CreateBoosting(const std::string& type, const char* filename
       } else {
         Log::Fatal("Unknown boosting type %s", type.c_str());
       }
-      LoadFileToBoosting(ret.get(), filename);
+      LoadFileToBoosting(ret.get(), core_model_filename.c_str());
     } else {
       Log::Fatal("Unknown model format or submodel type in model file %s", filename);
     }

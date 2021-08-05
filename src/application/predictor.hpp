@@ -168,6 +168,7 @@ class Predictor {
   */
   void Predict(const char* data_filename, const char* result_filename, bool header, bool disable_shape_check, bool precise_float_parser,
                std::string transform_file="", std::string header_file="") {
+    std::string core_data_filename(data_filename);
     auto writer = VirtualFileWriter::Make(result_filename);
     if (!writer->Init()) {
       Log::Fatal("Prediction results file %s cannot be created", result_filename);
@@ -178,10 +179,12 @@ class Predictor {
     struct stat buffer;
     bool exists = (stat (transform_file.c_str(), &buffer) == 0);
     if (exists){
-      std::string data_path(data_filename);
-      std::vector<string> transformed_data = Transform(transform_file, header_file, data_path, "");
+      Log::Info("Detected transform file.");
+      std::string str_data_filename(data_filename);
+      core_data_filename = core_data_filename + ".core";
+      std::vector<string> transformed_data = Transform(transform_file, header_file, str_data_filename, "");
       //TODO: use single line processor of Transform lib rather than modify raw data, cause predict is parallel.    
-      std::ofstream fout(data_filename);
+      std::ofstream fout(core_data_filename.c_str());
       for (auto str: transformed_data)
         fout << str << std::endl;
       fout.close();
@@ -193,13 +196,13 @@ class Predictor {
     }   
 
     if (parser == nullptr) {
-      Log::Fatal("Could not recognize the data format of data file %s", data_filename);
+      Log::Fatal("Could not recognize the data format of data file %s", core_data_filename.c_str());
     }
     if (!header && !disable_shape_check && parser->NumFeatures() != boosting_->MaxFeatureIdx() + 1) {
       Log::Fatal("The number of features in data (%d) is not the same as it was in training data (%d).\n" \
                  "You can set ``predict_disable_shape_check=true`` to discard this error, but please be aware what you are doing.", parser->NumFeatures(), boosting_->MaxFeatureIdx() + 1);
     }
-    TextReader<data_size_t> predict_data_reader(data_filename, header);
+    TextReader<data_size_t> predict_data_reader(core_data_filename.c_str(), header);
     std::vector<int> feature_remapper(parser->NumFeatures(), -1);
     bool need_adjust = false;
     if (header) {
