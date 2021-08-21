@@ -12,6 +12,8 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include "TransformProcessor.h"
+#include "IniFileParserInterface.h"
 
 namespace LightGBM {
 
@@ -129,6 +131,38 @@ class LibSVMParser: public Parser {
   int label_idx_ = 0;
   int total_columns_ = -1;
   AtofFunc atof_;
+};
+
+class TransformParser: public Parser {
+ public:
+  explicit TransformParser(AtofFunc atof, string transform_file, string input_head_path)
+    :atof_(atof), transform_file_(transform_file){
+    transform_ = new TransformProcessor(transform_file, input_head_path, "");
+  }
+  inline void ParseOneLine(const char* str,
+    std::vector<std::pair<int, double>>* out_features, double* out_label) const override {
+    //TODO: make a function in transform lib for below codes.
+    string sstr(str);
+    TransformedData data = transform_->Apply(sstr);
+    //TODO: label could be string?
+    double label_val = 0.0f;
+    atof_(data.Label().c_str(), &label_val);
+    *out_label = label_val;
+    for(auto f: data.Features()) {
+      out_features->emplace_back(f.first, f.second);
+    }
+  }
+
+  inline int NumFeatures() const override {
+    //TODO: make a function in transform lib for below codes.
+    IniFileParserInterface* from_input_ini = IniFileParserInterface::CreateFromInputIni(transform_file_);
+    return from_input_ini->GetInputCount();
+  }
+
+ private:
+  AtofFunc atof_;
+  string transform_file_;
+  TransformProcessor* transform_;
 };
 
 }  // namespace LightGBM
