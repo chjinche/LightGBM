@@ -33,7 +33,7 @@ bool Boosting::LoadFileToBoosting(Boosting* boosting, const char* filename) {
   return true;
 }
 
-Boosting* Boosting::CreateBoosting(const std::string& type, const char* filename, const char* transform_filename) {
+Boosting* Boosting::CreateBoosting(const std::string& type, const char* filename) {
   if (filename == nullptr || filename[0] == '\0') {
     if (type == std::string("gbdt")) {
       return new GBDT();
@@ -48,33 +48,6 @@ Boosting* Boosting::CreateBoosting(const std::string& type, const char* filename
     }
   } else {
     std::unique_ptr<Boosting> ret;
-    // split model file to transform and real model file.
-    if (GetBoostingTypeFromModelFile(filename) == std::string("transform")){
-      //TODO: verify transform_file is given.
-      std::ifstream fin(filename);
-      std::string line;
-      std::vector<std::string> transform_lines, model_lines;
-      bool is_transform = true;
-      while (std::getline(fin, line)){
-        boost::trim(line);
-        if (line == std::string("tree"))
-          is_transform = false;
-        if (is_transform)
-          transform_lines.push_back(line);
-        else
-          model_lines.push_back(line);
-      }
-      fin.close();
-      std::ofstream tfout(transform_filename);
-      for(auto str : transform_lines)
-        tfout << str << std::endl;
-      tfout.close();
-      
-      std::ofstream mfout(filename);
-      for(auto str : model_lines)
-        mfout << str << std::endl;
-      mfout.close();
-    }
     if (GetBoostingTypeFromModelFile(filename) == std::string("tree")) {
       if (type == std::string("gbdt")) {
         ret.reset(new GBDT());
