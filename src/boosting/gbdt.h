@@ -283,10 +283,6 @@ class GBDT : public GBDTBase {
   * \param filename Filename that want to save to
   * \return is_finish Is training finished or not
   */
-  bool SaveModelAndTransformToFile(int start_iteration, int num_iterations,
-                       int feature_importance_type,
-                       const char* filename, const char* transform_filename) const override;
-
   bool SaveModelToFile(int start_iteration, int num_iterations,
                        int feature_importance_type,
                        const char* filename) const override;

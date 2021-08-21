@@ -206,8 +206,6 @@ class LIGHTGBM_EXPORT Boosting {
   */
   virtual bool SaveModelToFile(int start_iteration, int num_iterations, int feature_importance_type, const char* filename) const = 0;
 
-  virtual bool SaveModelAndTransformToFile(int start_iteration, int num_iterations, int feature_importance_type, const char* filename, const char* transform_filename) const = 0;
-
   /*!
   * \brief Save model to string
   * \param start_iteration The model will be saved start from
@@ -313,7 +311,7 @@ class LIGHTGBM_EXPORT Boosting {
   * \param filename name of model file, if existing will continue to train from this model
   * \return The boosting object
   */
-  static Boosting* CreateBoosting(const std::string& type, const char* filename, const char* transform_filename="");
+  static Boosting* CreateBoosting(const std::string& type, const char* filename);
 
   virtual bool IsLinear() const { return false; }
 };
