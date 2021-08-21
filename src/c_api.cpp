@@ -109,10 +109,6 @@ class Booster {
     boosting_.reset(Boosting::CreateBoosting("gbdt", filename));
   }
 
-  explicit Booster(const char* filename, const char* transform_filename) {
-    boosting_.reset(Boosting::CreateBoosting("gbdt", filename, transform_filename));
-  }
-
   Booster(const Dataset* train_data,
           const char* parameters) {
     auto param = Config::Str2Map(parameters);
@@ -425,7 +421,7 @@ class Booster {
     }
 
     return Predictor(boosting_.get(), start_iteration, num_iteration, is_raw_score, is_predict_leaf, predict_contrib,
-                        config.pred_early_stop, config.pred_early_stop_freq, config.pred_early_stop_margin);
+                        config.pred_early_stop, config.pred_early_stop_freq, config.pred_early_stop_margin, config.input_model);
   }
 
   void Predict(int start_iteration, int num_iteration, int predict_type, int nrow, int ncol,
@@ -718,7 +714,7 @@ class Booster {
                         config.pred_early_stop, config.pred_early_stop_freq, config.pred_early_stop_margin);
     bool bool_data_has_header = data_has_header > 0 ? true : false;
     predictor.Predict(data_filename, result_filename, bool_data_has_header, config.predict_disable_shape_check,
-                      config.precise_float_parser, config.transform_file, config.header_file);
+                      config.precise_float_parser);
   }
 
   void GetPredictAt(int data_idx, double* out_result, int64_t* out_len) const {
@@ -727,10 +723,6 @@ class Booster {
 
   void SaveModelToFile(int start_iteration, int num_iteration, int feature_importance_type, const char* filename) const {
     boosting_->SaveModelToFile(start_iteration, num_iteration, feature_importance_type, filename);
-  }
-
-  void SaveModelAndTransformToFile(int start_iteration, int num_iteration, int feature_importance_type, const char* filename, const char* transform_filename) const {
-    boosting_->SaveModelAndTransformToFile(start_iteration, num_iteration, feature_importance_type, filename, transform_filename);
   }
 
   void LoadModelFromString(const char* model_str) {
@@ -848,6 +840,7 @@ using LightGBM::Common::CheckElementsIntervalClosed;
 using LightGBM::Common::RemoveQuotationSymbol;
 using LightGBM::Common::Vector2Ptr;
 using LightGBM::Common::VectorSize;
+using LightGBM::Common::CopyFile;
 using LightGBM::Config;
 using LightGBM::data_size_t;
 using LightGBM::Dataset;
@@ -1588,12 +1581,11 @@ int LGBM_BoosterCreate(const DatasetHandle train_data,
 int LGBM_BoosterCreateFromModelfile(
   const char* filename,
   int* out_num_iterations,
-  BoosterHandle* out,
-  const char* transform_filename
+  BoosterHandle* out
   ) {
   // Log::Info("c_api booster create from model file %s", *transform_filename);
   API_BEGIN();
-  auto ret = std::unique_ptr<Booster>(new Booster(filename, transform_filename));
+  auto ret = std::unique_ptr<Booster>(new Booster(filename));
   *out_num_iterations = ret->GetBoosting()->GetCurrentIteration();
   *out = ret.release();
   API_END();
@@ -2256,14 +2248,21 @@ int LGBM_BoosterSaveModel(BoosterHandle handle,
                           int num_iteration,
                           int feature_importance_type,
                           const char* filename,
-                          const char* transform_filename) {
+                          const char* transform_filename,
+                          const char* header_filename) {
   API_BEGIN();
   Booster* ref_booster = reinterpret_cast<Booster*>(handle);
-  if (transform_filename && *transform_filename != '\0')
-    ref_booster->SaveModelAndTransformToFile(start_iteration, num_iteration, feature_importance_type, filename, transform_filename);
-  else
-    ref_booster->SaveModelToFile(start_iteration, num_iteration,
-                                 feature_importance_type, filename);
+  ref_booster->SaveModelToFile(start_iteration, num_iteration,
+                              feature_importance_type, filename);
+  std::string model_output_path(filename);
+  if (transform_filename && *transform_filename != '\0') {
+    std::string str_transform(transform_filename);
+    CopyFile(str_transform, model_output_path + ".transform");
+  }
+  if (header_filename && *header_filename != '\0') {
+    std::string str_header(header_filename);
+    CopyFile(str_header, model_output_path + ".header");
+  }
   API_END();
 }
 
