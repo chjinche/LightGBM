@@ -454,8 +454,7 @@ LIGHTGBM_C_EXPORT int LGBM_BoosterCreate(const DatasetHandle train_data,
  */
 LIGHTGBM_C_EXPORT int LGBM_BoosterCreateFromModelfile(const char* filename,
                                                       int* out_num_iterations,
-                                                      BoosterHandle* out,
-                                                      const char* transform_filename="");
+                                                      BoosterHandle* out);
 
 /*!
  * \brief Load an existing booster from string.
@@ -1185,6 +1184,8 @@ LIGHTGBM_C_EXPORT int LGBM_BoosterPredictForMats(BoosterHandle handle,
  * \param num_iteration Index of the iteration that should be saved, <= 0 means save all
  * \param feature_importance_type Type of feature importance, can be ``C_API_FEATURE_IMPORTANCE_SPLIT`` or ``C_API_FEATURE_IMPORTANCE_GAIN``
  * \param filename The name of the file
+ * \param transform_filename The name of the transform file, optional
+ * \param header_filename The name of the header file, optional
  * \return 0 when succeed, -1 when failure happens
  */
 LIGHTGBM_C_EXPORT int LGBM_BoosterSaveModel(BoosterHandle handle,
@@ -1192,7 +1193,8 @@ LIGHTGBM_C_EXPORT int LGBM_BoosterSaveModel(BoosterHandle handle,
                                             int num_iteration,
                                             int feature_importance_type,
                                             const char* filename,
-                                            const char* transform_filename="");
+                                            const char* transform_filename="",
+                                            const char* header_filename="");
 
 /*!
  * \brief Save model to string.
