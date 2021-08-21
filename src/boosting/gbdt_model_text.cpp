@@ -414,33 +414,6 @@ bool GBDT::SaveModelToFile(int start_iteration, int num_iteration, int feature_i
   return size > 0;
 }
 
-bool GBDT::SaveModelAndTransformToFile(int start_iteration, int num_iteration, int feature_importance_type, const char* filename, const char* transform_filename) const {
-  /*! \brief File to write models */
-  auto writer = VirtualFileWriter::Make(filename);
-  if (!writer->Init()) {
-    Log::Fatal("Model file %s is not available for writes", filename);
-  }
-  std::string transform_str_to_write = "";
-  Log::Info("Saving model");
-  if (transform_filename && transform_filename){
-    Log::Info("Transform file exists");
-    //Save transform to model file.
-    std::ifstream fin(transform_filename);
-    transform_str_to_write = "transform\n";
-    std::string data_line;
-    while (std::getline(fin, data_line)) {
-      // Remove '\r' to avoid feature spec parsing error.
-      boost::trim(data_line);
-      transform_str_to_write += data_line + "\n";
-    }
-    transform_str_to_write += "end of transforms\n\n";
-  }
-  std::string model_str_to_write = SaveModelToString(start_iteration, num_iteration, feature_importance_type);
-  std::string str_to_write = transform_str_to_write.empty()? model_str_to_write: transform_str_to_write + model_str_to_write; 
-  auto size = writer->Write(str_to_write.c_str(), str_to_write.size());
-  return size > 0;
-}
-
 bool GBDT::LoadModelFromString(const char* buffer, size_t len) {
   // use serialized string to restore this object
   models_.clear();

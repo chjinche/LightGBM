@@ -7,6 +7,7 @@
 #include <string>
 #include <algorithm>
 #include <memory>
+#include <sys/stat.h>
 
 namespace LightGBM {
 
@@ -235,7 +236,9 @@ Parser* Parser::CreateParser(const char* filename, bool header, int num_features
   std::unique_ptr<Parser> ret;
   AtofFunc atof = precise_float_parser ? Common::AtofPrecise : Common::Atof;
   // if transform file and header file are provided, return TransformParser.
-  if (!transform_file.empty() && !header_file.empty()) {
+  struct stat buffer;
+  if (!transform_file.empty() &&  (stat (transform_file.c_str(), &buffer) == 0)
+      && !header_file.empty() && (stat (header_file.c_str(), &buffer) == 0)) {
     ret.reset(new TransformParser(atof, transform_file, header_file));
     return ret.release();
   }
