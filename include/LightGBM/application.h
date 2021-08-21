@@ -70,6 +70,7 @@ class Application {
   std::vector<std::vector<std::unique_ptr<Metric>>> valid_metrics_;
   /*! \brief Boosting object */
   std::unique_ptr<Boosting> boosting_;
+  std::string model_path_;
   /*! \brief Training objective function */
   std::unique_ptr<ObjectiveFunction> objective_fun_;
 };

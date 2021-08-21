@@ -23,7 +23,6 @@
 #include "TransformProcessor.h"
 #include "IniFileParserInterface.h"
 #include "../io/parser.hpp"
-#include <sys/stat.h>
 #include <fstream>
 
 
@@ -45,7 +44,7 @@ class Predictor {
   */
   Predictor(Boosting* boosting, int start_iteration, int num_iteration, bool is_raw_score,
             bool predict_leaf_index, bool predict_contrib, bool early_stop,
-            int early_stop_freq, double early_stop_margin) {
+            int early_stop_freq, double early_stop_margin, std::string model_path="") {
     early_stop_ = CreatePredictionEarlyStopInstance(
         "none", LightGBM::PredictionEarlyStopConfig());
     if (early_stop && !boosting->NeedAccuratePrediction()) {
@@ -65,6 +64,8 @@ class Predictor {
 
     boosting->InitPredict(start_iteration, num_iteration, predict_contrib);
     boosting_ = boosting;
+    transform_file_path_ = model_path + ".transform";
+    header_file_path_ = model_path + ".header";
     num_pred_one_row_ = boosting_->NumPredictOneRow(start_iteration,
         num_iteration, predict_leaf_index, predict_contrib);
     num_feature_ = boosting_->MaxFeatureIdx() + 1;
@@ -166,32 +167,14 @@ class Predictor {
   * \param data_filename Filename of data
   * \param result_filename Filename of output result
   */
-  void Predict(const char* data_filename, const char* result_filename, bool header, bool disable_shape_check, bool precise_float_parser,
-               std::string transform_file="", std::string header_file="") {
+  void Predict(const char* data_filename, const char* result_filename, bool header, bool disable_shape_check, bool precise_float_parser) {
     auto writer = VirtualFileWriter::Make(result_filename);
     if (!writer->Init()) {
       Log::Fatal("Prediction results file %s cannot be created", result_filename);
     }
     auto label_idx = header ? -1 : boosting_->LabelIdx();
     auto parser = std::unique_ptr<Parser>(Parser::CreateParser(data_filename, header, boosting_->MaxFeatureIdx() + 1, label_idx,
-                                                               precise_float_parser));
-    struct stat buffer;
-    bool exists = (stat (transform_file.c_str(), &buffer) == 0);
-    if (exists){
-      std::string data_path(data_filename);
-      std::vector<string> transformed_data = Transform(transform_file, header_file, data_path, "");
-      //TODO: use single line processor of Transform lib rather than modify raw data, cause predict is parallel.    
-      std::ofstream fout(data_filename);
-      for (auto str: transformed_data)
-        fout << str << std::endl;
-      fout.close();
-      //reset parser
-      IniFileParserInterface* from_input_ini = IniFileParserInterface::CreateFromInputIni(transform_file);
-      // TODO: check if we should add query id to features, use +1 to workaround.
-      int total_columns = from_input_ini->GetInputCount() + 1; 
-      parser.reset(new LibSVMParser(0, total_columns, Common::AtofPrecise));
-    }   
-
+                                                               precise_float_parser, transform_file_path_, header_file_path_));
     if (parser == nullptr) {
       Log::Fatal("Could not recognize the data format of data file %s", data_filename);
     }
@@ -316,6 +299,8 @@ class Predictor {
   int num_feature_;
   int num_pred_one_row_;
   std::vector<std::vector<double, Common::AlignmentAllocator<double, kAlignedSize>>> predict_buf_;
+  std::string transform_file_path_;
+  std::string header_file_path_;
 };
 
 }  // namespace LightGBM

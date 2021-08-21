@@ -2567,8 +2567,7 @@ class Booster:
             _safe_call(_LIB.LGBM_BoosterCreateFromModelfile(
                 c_str(str(model_file)),
                 ctypes.byref(out_num_iterations),
-                ctypes.byref(self.handle),
-                c_str(str(transform_file))
+                ctypes.byref(self.handle)
                 ))
             out_num_class = ctypes.c_int(0)
             _safe_call(_LIB.LGBM_BoosterGetNumClasses(
