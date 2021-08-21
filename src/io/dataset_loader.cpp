@@ -200,7 +200,8 @@ Dataset* DatasetLoader::LoadFromFile(const char* filename, int rank, int num_mac
   bool is_load_from_binary = false;
   if (bin_filename.size() == 0) {
     auto parser = std::unique_ptr<Parser>(Parser::CreateParser(filename, config_.header, 0, label_idx_,
-                                                               config_.precise_float_parser));
+                                                               config_.precise_float_parser,
+                                                               config_.transform_file, config_.header_file));
     if (parser == nullptr) {
       Log::Fatal("Could not recognize data format of %s", filename);
     }
