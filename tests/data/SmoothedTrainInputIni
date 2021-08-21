@@ -1,3 +1,8 @@
+[Input:0]
+Name=m:QueryId
+Transform=Linear
+Slope=1
+Intercept=0
 
 [Input:1]
 Name=MaxFromQueryTranslation_IETBSatModel-IM-Prod_10_0
