@@ -13,7 +13,6 @@
 #include <utility>
 #include <vector>
 #include "TransformProcessor.h"
-#include "IniFileParserInterface.h"
 
 namespace LightGBM {
 
@@ -154,9 +153,7 @@ class TransformParser: public Parser {
   }
 
   inline int NumFeatures() const override {
-    //TODO: make a function in transform lib for below codes.
-    IniFileParserInterface* from_input_ini = IniFileParserInterface::CreateFromInputIni(transform_file_);
-    return from_input_ini->GetInputCount();
+    return transform_->GetFeatureCount();
   }
 
  private:
