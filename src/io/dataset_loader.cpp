@@ -961,7 +961,7 @@ void DatasetLoader::ConstructBinMappersFromTextData(int rank, int num_machines,
   std::vector<std::pair<int, double>> oneline_features;
   double label;
   // DEBUG DATA
-  // std::string data_str = "";
+  std::string data_str = "";
   for (int i = 0; i < static_cast<int>(sample_data.size()); ++i) {
     oneline_features.clear();
     // parse features
@@ -973,9 +973,9 @@ void DatasetLoader::ConstructBinMappersFromTextData(int rank, int num_machines,
       oneline_features[i].second = std::stod(ss.str());
     }
     // DEBUG DATA
-    // std::stringstream ss;
-    // ss << std::setiosflags(std::ios::fixed) << std::setprecision(0) << label << " ";
-    // data_str += ss.str();
+    std::stringstream ss;
+    ss << std::setiosflags(std::ios::fixed) << std::setprecision(0) << label << " ";
+    data_str += ss.str();
     for (std::pair<int, double>& inner_data : oneline_features) {
       if (static_cast<size_t>(inner_data.first) >= sample_values.size()) {
         sample_values.resize(inner_data.first + 1);
@@ -986,17 +986,17 @@ void DatasetLoader::ConstructBinMappersFromTextData(int rank, int num_machines,
         sample_indices[inner_data.first].emplace_back(i);
       }
       // DEBUG DATA
-      // std::stringstream ss;
-      // ss << inner_data.first << ":" << std::setiosflags(std::ios::fixed) << std::setprecision(5) << inner_data.second << " ";
-      // data_str += ss.str();
+      std::stringstream ss;
+      ss << inner_data.first << ":" << std::setiosflags(std::ios::fixed) << std::setprecision(5) << inner_data.second << " ";
+      data_str += ss.str();
     }
-    // // DEBUG DATA
-    // data_str += "\n";
+    // DEBUG DATA
+    data_str += "\n";
   }
-  // // DEBUG DATA
-  // std::ofstream ofs("/tmp/out.data");
-  // ofs << data_str;
-  // ofs.close();
+  // DEBUG DATA
+  std::ofstream ofs("/mnt/chjinche/data/debug_model_diff/integrated_transformed");
+  ofs << data_str;
+  ofs.close();
 
   dataset->feature_groups_.clear();
   dataset->num_total_features_ = std::max(static_cast<int>(sample_values.size()), parser->NumFeatures());
