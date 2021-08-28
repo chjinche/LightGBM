@@ -1,4 +1,4 @@
-OPTION(USE_MPI "Enable MPI-based distributed learning" OFF)
+OPTION(USE_MPI "Enable MPI-based distributed learning" ON)
 OPTION(USE_OPENMP "Enable OpenMP" ON)
 OPTION(USE_GPU "Enable GPU-accelerated training" OFF)
 OPTION(USE_SWIG "Enable SWIG to generate Java API" OFF)
@@ -356,6 +356,7 @@ endif(USE_CUDA)
 )
 
 add_executable(lightgbm src/main.cpp src/application/application.cpp ${SOURCES})
+target_link_libraries(lightgbm /usr/local/lib/libTransformProcessor.so)
 list(APPEND SOURCES "src/c_api.cpp")
 
 # Only build the R part of the library if building for
