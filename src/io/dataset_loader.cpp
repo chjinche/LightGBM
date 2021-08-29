@@ -895,10 +895,13 @@ std::vector<std::string> DatasetLoader::SampleTextDataFromMemory(const std::vect
   if (static_cast<size_t>(sample_cnt) > data.size()) {
     sample_cnt = static_cast<int>(data.size());
   }
+  Log::Info("sample_cnt %d", sample_cnt);
   auto sample_indices = random_.Sample(static_cast<int>(data.size()), sample_cnt);
+  Log::Info("Printing sample indices:");
   std::vector<std::string> out(sample_indices.size());
   for (size_t i = 0; i < sample_indices.size(); ++i) {
     const size_t idx = sample_indices[i];
+    Log::Info("indices: %d", idx);
     out[i] = data[idx];
   }
   return out;
@@ -1177,6 +1180,13 @@ void DatasetLoader::ExtractFeaturesFromMemory(std::vector<std::string>* text_dat
       oneline_features.clear();
       // parser
       parser->ParseOneLine(ref_text_data[i].c_str(), &oneline_features, &tmp_label);
+      // DEBUG, SET TO PRECISION 5
+      Log::Info("Extracting features from memory, set precision 5");
+      for(int i = 0; i < oneline_features.size(); ++i) {
+        std::stringstream ss;
+        ss << std::setiosflags(std::ios::fixed) << std::setprecision(5) << oneline_features[i].second << " ";
+        oneline_features[i].second = std::stod(ss.str());
+      }
       // set label
       dataset->metadata_.SetLabelAt(i, static_cast<label_t>(tmp_label));
       // free processed line:
