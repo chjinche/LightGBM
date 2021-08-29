@@ -355,7 +355,7 @@ if(USE_CUDA)
 endif(USE_CUDA)
 )
 
-add_executable(lightgbm src/main.cpp src/application/application.cpp ${SOURCES})
+add_executable(lightgbm src/main.cpp src/application/application.cpp ${SOURCES} src/c_api.cpp)
 target_link_libraries(lightgbm /usr/local/lib/libTransformProcessor.so)
 list(APPEND SOURCES "src/c_api.cpp")
 
@@ -370,6 +370,8 @@ if (BUILD_STATIC_LIB)
 else()
   add_library(_lightgbm SHARED ${SOURCES})
 endif(BUILD_STATIC_LIB)
+
+target_link_libraries(_lightgbm /usr/local/lib/libTransformProcessor.so)
 
 if(MSVC)
   set_target_properties(_lightgbm PROPERTIES OUTPUT_NAME "lib_lightgbm")
