@@ -270,7 +270,8 @@ Dataset* DatasetLoader::LoadFromFileAlignWithOtherDataset(const char* filename, 
   auto bin_filename = CheckCanLoadFromBin(filename);
   if (bin_filename.size() == 0) {
     auto parser = std::unique_ptr<Parser>(Parser::CreateParser(filename, config_.header, 0, label_idx_,
-                                                               config_.precise_float_parser));
+                                                               config_.precise_float_parser,
+                                                               config_.transform_file, config_.header_file));
     if (parser == nullptr) {
       Log::Fatal("Could not recognize data format of %s", filename);
     }
