@@ -148,6 +148,13 @@ class TransformParser: public Parser {
     atof_(data.Label().c_str(), &label_val);
     *out_label = label_val;
     for(auto f: data.Features()) {
+      // SIMULATION BEGIN, SET TO PRECISION 5.
+      std::stringstream ss;
+      ss << std::setiosflags(std::ios::fixed) << std::setprecision(5) << f.second << " ";
+      double val = 0.0f;
+      atof_(ss.str().c_str(), &val);
+      f.second = val;
+      // SIMULATION END.
       out_features->emplace_back(f.first, f.second);
     }
   }
