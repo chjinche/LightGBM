@@ -969,6 +969,7 @@ void DatasetLoader::ConstructBinMappersFromTextData(int rank, int num_machines,
     oneline_features.clear();
     // parse features
     parser->ParseOneLine(sample_data[i].c_str(), &oneline_features, &label);
+    Log::Info("ConstructBin, set precision 5.");
     // DEBUG, SET TO PRECISION 5
     for(int i = 0; i < oneline_features.size(); ++i) {
       std::stringstream ss;
@@ -1238,6 +1239,13 @@ void DatasetLoader::ExtractFeaturesFromMemory(std::vector<std::string>* text_dat
       oneline_features.clear();
       // parser
       parser->ParseOneLine(ref_text_data[i].c_str(), &oneline_features, &tmp_label);
+      // DEBUG, SET TO PRECISION 5
+      Log::Info("Continued training, set precision 5");
+      for(int i = 0; i < oneline_features.size(); ++i) {
+        std::stringstream ss;
+        ss << std::setiosflags(std::ios::fixed) << std::setprecision(5) << oneline_features[i].second << " ";
+        oneline_features[i].second = std::stod(ss.str());
+      }
       // set initial score
       std::vector<double> oneline_init_score(num_class_);
       predict_fun_(oneline_features, oneline_init_score.data());
@@ -1313,6 +1321,13 @@ void DatasetLoader::ExtractFeaturesFromFile(const char* filename, const Parser* 
       oneline_features.clear();
       // parser
       parser->ParseOneLine(lines[i].c_str(), &oneline_features, &tmp_label);
+      Log::Info("Extract features from file");
+      // DEBUG, SET TO PRECISION 5
+      for(int i = 0; i < oneline_features.size(); ++i) {
+        std::stringstream ss;
+        ss << std::setiosflags(std::ios::fixed) << std::setprecision(5) << oneline_features[i].second << " ";
+        oneline_features[i].second = std::stod(ss.str());
+      }
       // set initial score
       if (!init_score.empty()) {
         std::vector<double> oneline_init_score(num_class_);
