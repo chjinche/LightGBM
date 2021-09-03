@@ -9,6 +9,7 @@
 #include <LightGBM/utils/json11.h>
 #include <LightGBM/utils/log.h>
 #include <LightGBM/utils/openmp_wrapper.h>
+#include "Logger.h"
 
 #include <chrono>
 #include <fstream>
@@ -180,6 +181,7 @@ void CheckSampleSize(size_t sample_cnt, size_t num_data) {
 }
 
 Dataset* DatasetLoader::LoadFromFile(const char* filename, int rank, int num_machines) {
+  Logger::Info << "Start loading from file " << filename << endl;
   // don't support query id in data file when using distributed training
   if (num_machines > 1 && !config_.pre_partition) {
     if (group_idx_ > 0) {
@@ -225,7 +227,9 @@ Dataset* DatasetLoader::LoadFromFile(const char* filename, int rank, int num_mac
       text_data.clear();
     } else {
       // sample data from file
+      Logger::Info << "Sampling text data from file " << filename << endl;
       auto sample_data = SampleTextDataFromFile(filename, dataset->metadata_, rank, num_machines, &num_global_data, &used_data_indices);
+      Logger::Info << "Done sampling" <<endl;
       if (used_data_indices.size() > 0) {
         dataset->num_data_ = static_cast<data_size_t>(used_data_indices.size());
       } else {
@@ -234,15 +238,18 @@ Dataset* DatasetLoader::LoadFromFile(const char* filename, int rank, int num_mac
       CheckSampleSize(sample_data.size(),
                       static_cast<size_t>(dataset->num_data_));
       // construct feature bin mappers
+      Logger::Info << "Constructing bin" << endl;
       ConstructBinMappersFromTextData(rank, num_machines, sample_data, parser.get(), dataset.get());
+      Logger::Info << "Done constructing" << endl;
       if (dataset->has_raw()) {
         dataset->ResizeRaw(dataset->num_data_);
       }
       // initialize label
       dataset->metadata_.Init(dataset->num_data_, weight_idx_, group_idx_);
-      Log::Info("Making second pass...");
+      Logger::Info << "Making second pass..." << endl;
       // extract features
       ExtractFeaturesFromFile(filename, parser.get(), used_data_indices, dataset.get());
+      Logger::Info << "Done extracting" << endl;
     }
   } else {
     // load data from binary file
@@ -1332,7 +1339,9 @@ void DatasetLoader::ExtractFeaturesFromFile(const char* filename, const Parser* 
     text_reader.ReadPartAndProcessParallel(used_data_indices, process_fun);
   } else {
     // need full data
+    Logger::Info << "Start reading parallel "<< endl;
     text_reader.ReadAllAndProcessParallel(process_fun);
+    Logger::Info << "Done reading parallel "<< endl;
   }
 
   // metadata_ will manage space of init_score
