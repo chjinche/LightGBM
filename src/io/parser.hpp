@@ -13,6 +13,7 @@
 #include <utility>
 #include <vector>
 #include "TransformProcessor.h"
+#include "Logger.h"
 
 namespace LightGBM {
 
@@ -136,7 +137,9 @@ class TransformParser: public Parser {
  public:
   explicit TransformParser(AtofFunc atof, string transform_file, string input_head_path)
     :atof_(atof), transform_file_(transform_file){
+    Logger::Info << "Start initializing transform." << endl;
     transform_ = new TransformProcessor(transform_file, input_head_path, "");
+    Logger::Info << "Done initializing transform." << endl;
   }
   inline void ParseOneLine(const char* str,
     std::vector<std::pair<int, double>>* out_features, double* out_label) const override {
