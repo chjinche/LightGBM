@@ -134,9 +134,9 @@ class LibSVMParser: public Parser {
 
 class TransformParser: public Parser {
  public:
-  explicit TransformParser(AtofFunc atof, string transform_file, string input_head_path)
-    :atof_(atof), transform_file_(transform_file){
-    transform_ = new TransformProcessor(transform_file, input_head_path, "");
+  explicit TransformParser(int label_idx, AtofFunc atof, string transform_file, string input_head_path)
+    :label_idx_(label_idx), atof_(atof), transform_file_(transform_file){
+    transform_ = new TransformProcessor(transform_file, input_head_path, "", "m_rating");
   }
   inline void ParseOneLine(const char* str,
     std::vector<std::pair<int, double>>* out_features, double* out_label) const override {
@@ -157,6 +157,7 @@ class TransformParser: public Parser {
   }
 
  private:
+  int label_idx_ = 0;
   AtofFunc atof_;
   string transform_file_;
   TransformProcessor* transform_;

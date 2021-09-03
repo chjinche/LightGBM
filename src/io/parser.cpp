@@ -239,7 +239,7 @@ Parser* Parser::CreateParser(const char* filename, bool header, int num_features
   struct stat buffer;
   if (!transform_file.empty() &&  (stat (transform_file.c_str(), &buffer) == 0)
       && !header_file.empty() && (stat (header_file.c_str(), &buffer) == 0)) {
-    ret.reset(new TransformParser(atof, transform_file, header_file));
+    ret.reset(new TransformParser(label_idx, atof, transform_file, header_file));
     return ret.release();
   }
   const int n_read_line = 32;
