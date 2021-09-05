@@ -1293,6 +1293,11 @@ void DatasetLoader::ExtractFeaturesFromFile(const char* filename, const Parser* 
       dataset->metadata_.SetLabelAt(start_idx + i, static_cast<label_t>(tmp_label));
       std::vector<bool> is_feature_added(dataset->num_features_, false);
       // push data
+      // DEBUG, SAVE sample_data.
+      std::string data_str = "";
+      std::stringstream out_file_name;
+      out_file_name << "/tmp/pushed_data_startid_" << start_idx << "_lineid_" <<i;
+      std::ofstream ofs(out_file_name.str().c_str());
       for (auto& inner_data : oneline_features) {
         if (inner_data.first >= dataset->num_total_features_) { continue; }
         int feature_idx = dataset->used_feature_map_[inner_data.first];
@@ -1301,6 +1306,9 @@ void DatasetLoader::ExtractFeaturesFromFile(const char* filename, const Parser* 
           // if is used feature
           int group = dataset->feature2group_[feature_idx];
           int sub_feature = dataset->feature2subfeature_[feature_idx];
+          std::stringstream ss;
+          ss << "tid: " << tid << ",sub_feature: " << sub_feature << ",start_idx: "<< start_idx << ",i: "<< i << ",first: " << inner_data.first << ",second: " << inner_data.second << "\n";
+          data_str += ss.str();
           dataset->feature_groups_[group]->PushData(tid, sub_feature, start_idx + i, inner_data.second);
           if (dataset->has_raw()) {
             feature_row[feature_idx] = static_cast<float>(inner_data.second);
@@ -1313,6 +1321,9 @@ void DatasetLoader::ExtractFeaturesFromFile(const char* filename, const Parser* 
           }
         }
       }
+      ofs << data_str;
+      ofs.close();
+      //END DEBUG.
       if (dataset->has_raw()) {
         for (size_t j = 0; j < feature_row.size(); ++j) {
           int feat_ind = dataset->numeric_feature_map_[j];
