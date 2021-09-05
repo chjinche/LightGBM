@@ -225,6 +225,20 @@ Dataset* DatasetLoader::LoadFromFile(const char* filename, int rank, int num_mac
     } else {
       // sample data from file
       auto sample_data = SampleTextDataFromFile(filename, dataset->metadata_, rank, num_machines, &num_global_data, &used_data_indices);
+      Log::Info("Two round. Used data indices size: %d", used_data_indices.size());
+      Log::Info("num_global_data %d", num_global_data);
+      // // DEBUG, SAVE sample_data.
+      // std::string data_str = "";
+      // for(int i = 0; i < sample_data.size(); ++i) {
+      //   std::stringstream ss;
+      //   ss << sample_data[i] << "\n";
+      //   data_str += ss.str();
+      // }
+      // std::ofstream ofs("/mnt/chjinche/data/debug_two_round/sample.data");
+      // ofs << data_str;
+      // ofs.close();
+      // //END DEBUG.
+
       if (used_data_indices.size() > 0) {
         dataset->num_data_ = static_cast<data_size_t>(used_data_indices.size());
       } else {
@@ -1268,6 +1282,29 @@ void DatasetLoader::ExtractFeaturesFromFile(const char* filename, const Parser* 
   std::function<void(data_size_t, const std::vector<std::string>&)> process_fun =
     [this, &init_score, &parser, &dataset]
   (data_size_t start_idx, const std::vector<std::string>& lines) {
+    // DEBUG, save process lines.
+    Log::Info("Extract from file.");
+    Log::Info("start_idx %d", start_idx);
+    Log::Info("lines size %d", lines.size());
+    // std::string data_str = "";
+    // for(int i = 0; i < lines.size(); ++i) {
+    //   std::stringstream ss;
+    //   ss << lines[i] << "\n";
+    //   data_str += ss.str();
+    // }
+    // std::stringstream out_file_name;
+    // out_file_name << "/mnt/chjinche/data/debug_two_round/extract_from_file_start_id_" << start_idx;
+    // std::ofstream ofs(out_file_name.str().c_str());
+    // ofs << data_str;
+    // ofs.close();
+    // //save the last line to check if chunked.
+    // std::stringstream last_line_file_name;
+    // last_line_file_name << "/mnt/chjinche/data/debug_two_round/last_line_start_id_" << start_idx;
+    // std::ofstream ofs_last(last_line_file_name.str().c_str());
+    // ofs_last << lines[lines.size() - 1] << "\n";
+    // ofs_last.close();
+    // //END DEBUG.
+
     std::vector<std::pair<int, double>> oneline_features;
     double tmp_label = 0.0f;
     std::vector<float> feature_row(dataset->num_features_);
@@ -1299,6 +1336,10 @@ void DatasetLoader::ExtractFeaturesFromFile(const char* filename, const Parser* 
           // if is used feature
           int group = dataset->feature2group_[feature_idx];
           int sub_feature = dataset->feature2subfeature_[feature_idx];
+          //DEBUG.
+          Log::Info("tid: %d, sub_feature: %d, start_idx: %d, i: %d, first: %d, second: %d",
+                    (tid, sub_feature, start_idx, i, inner_data.first, inner_data.second));
+          //END DEBUG.
           dataset->feature_groups_[group]->PushData(tid, sub_feature, start_idx + i, inner_data.second);
           if (dataset->has_raw()) {
             feature_row[feature_idx] = static_cast<float>(inner_data.second);

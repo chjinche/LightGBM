@@ -245,6 +245,8 @@ class TextReader {
     PipelineReader::Read(filename_, skip_bytes_,
         [&process_fun, &filter_fun, &total_cnt, &bytes_read, &used_cnt, this]
     (const char* buffer_process, size_t read_cnt) {
+      // Log::Info("buffer_process %s", buffer_process);
+      Log::Info("read_cnt %d", read_cnt);
       size_t cnt = 0;
       size_t i = 0;
       size_t last_i = 0;
