@@ -34,7 +34,7 @@ class PipelineReader {
       return 0;
     }
     size_t cnt = 0;
-    const size_t buffer_size =  8 * 1024 * 1024;
+    const size_t buffer_size =  64 * 1024 * 1024;
     // buffer used for the process_fun
     auto buffer_process = std::vector<char>(buffer_size);
     // buffer used for the file reading
