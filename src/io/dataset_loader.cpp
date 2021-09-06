@@ -1268,6 +1268,7 @@ void DatasetLoader::ExtractFeaturesFromFile(const char* filename, const Parser* 
   std::function<void(data_size_t, const std::vector<std::string>&)> process_fun =
     [this, &init_score, &parser, &dataset]
   (data_size_t start_idx, const std::vector<std::string>& lines) {
+    Log::Info("start_id %d, lines size %d", (start_idx, lines.size()));
     std::vector<std::pair<int, double>> oneline_features;
     double tmp_label = 0.0f;
     std::vector<float> feature_row(dataset->num_features_);
