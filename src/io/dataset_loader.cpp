@@ -967,10 +967,13 @@ void DatasetLoader::ConstructBinMappersFromTextData(int rank, int num_machines,
   std::vector<std::vector<int>> sample_indices;
   std::vector<std::pair<int, double>> oneline_features;
   double label;
+  Logger::Info << "Starting reading sample data and push." << endl; 
   for (int i = 0; i < static_cast<int>(sample_data.size()); ++i) {
     oneline_features.clear();
     // parse features
+    Logger::Info << "Start parsing one line" << endl;
     parser->ParseOneLine(sample_data[i].c_str(), &oneline_features, &label);
+    Logger::Info << "Done parsing" << endl;
     for (std::pair<int, double>& inner_data : oneline_features) {
       if (static_cast<size_t>(inner_data.first) >= sample_values.size()) {
         sample_values.resize(inner_data.first + 1);
@@ -981,7 +984,9 @@ void DatasetLoader::ConstructBinMappersFromTextData(int rank, int num_machines,
         sample_indices[inner_data.first].emplace_back(i);
       }
     }
+    Logger::Info << "Pushed to sample vals and indices." << endl;
   }
+  Logger::Info << "Finished reading sample data." << endl;
 
   dataset->feature_groups_.clear();
   dataset->num_total_features_ = std::max(static_cast<int>(sample_values.size()), parser->NumFeatures());
@@ -1020,6 +1025,7 @@ void DatasetLoader::ConstructBinMappersFromTextData(int rank, int num_machines,
   std::vector<std::unique_ptr<BinMapper>> bin_mappers(dataset->num_total_features_);
   const data_size_t filter_cnt = static_cast<data_size_t>(
     static_cast<double>(config_.min_data_in_leaf* sample_data.size()) / dataset->num_data_);
+  Logger::Info<< "Start finding bins" << endl;
   // start find bins
   if (num_machines == 1) {
     // if only one machine, find bin locally
